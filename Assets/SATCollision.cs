@@ -2,11 +2,60 @@
 using System.Collections.Generic;
 using UnityEngine;
 using NP.Convex.Shape;
+using NP.Convex.Collision;
+
+namespace NP.Convex.Collision{
+
+	/**
+	 * Collision result
+	 **/
+	public enum CollisionResult{
+
+		/**
+		 * Whole object fit in node boundary
+		 **/
+		Fit,
+
+		/**
+		 * Part of object in node boundary or
+		 * cover entire boundary
+		 **/
+		Overlap,
+
+		/**
+		 * Object not intersect or fit in node boundary
+		 **/
+		None
+	}
+
+	/**
+	 * Collision interface for rectangle shape
+	 **/
+	public interface IConvexRectCollision{
+
+		CollisionResult CollideWithRect(ConvexRect otherRect);
+	}
+
+	/**
+	 * Collision interface for circle shape
+	 **/
+	public interface IConvexCircleCollision{
+
+		CollisionResult CollideWithCircle (ConvexCircle otherCircle);
+		CollisionResult CollideWithRect (ConvexRect otherRect);
+	}
+}
 
 namespace NP.Convex.Shape{
 
-	public class ConvexRect{
+	/**
+	 * A convex of rectangle shape
+	 * 
+	 * Implement IConvexRectCollision interface
+	 **/
+	public class ConvexRect : IConvexRectCollision{
 
+		#region Properties
 		float _x;
 
 		/**
@@ -224,14 +273,18 @@ namespace NP.Convex.Shape{
 				return new Vector2 (xMax, yMax);
 			}
 		}
+		#endregion
 
+		#region Class methods
 		public static ConvexRect zero{
 
 			get{
 				return new ConvexRect (0.0f, 0.0f, 0.0f, 0.0f);
 			}
 		}
+		#endregion
 
+		#region Constructor
 		public ConvexRect(float x, float y, float width, float height){
 
 			_x = x;
@@ -247,12 +300,16 @@ namespace NP.Convex.Shape{
 			_width = Mathf.Abs(size.x);
 			_height = Mathf.Abs(size.y);
 		}
+		#endregion
 
+		#region Private methods
 		void CalculateCenter(){
 
 			_center = new Vector2 (_x + _width / 2.0f, _y - _height / 2.0f);
 		}
+		#endregion
 
+		#region Public methods
 		/**
 		 * Extend rectangle with amount of value on x and y
 		 * 
@@ -275,10 +332,26 @@ namespace NP.Convex.Shape{
 
 			return false;
 		}
+		#endregion
+
+		#region IConvexRectCollision
+		public CollisionResult CollideWithRect(ConvexRect otherRect){
+
+			//TODO implement collision
+			return CollisionResult.None;
+		}
+		#endregion
 	}
 
-	public class ConvexCircle{
 
+	/**
+	 * A convex of circle shape
+	 * 
+	 * Implement IConvexCircleCollision interface
+	 **/
+	public class ConvexCircle : IConvexCircleCollision{
+		
+		#region Properties
 		float _center;
 
 		public float Center{
@@ -306,58 +379,33 @@ namespace NP.Convex.Shape{
 				_radius = value;
 			}
 		}
+		#endregion
+
+		#region Constructor
+		public ConvexCircle(float center, float radius){
+
+			_center = center;
+			_radius = radius;
+		}
+		#endregion
+
+		#region IConvexCircleCollision
+		public CollisionResult CollideWithCircle (ConvexCircle otherCircle){
+
+			//TODO implement collision
+			return CollisionResult.None;
+		}
+
+		public CollisionResult CollideWithRect (ConvexRect otherRect){
+
+			//TODO implement collision
+			return CollisionResult.None;
+		}
+		#endregion
 	}
+
+
 }
 
-namespace NP.Convex.Collision{
 
-
-	public enum CollisionResult{
-
-		/**
-		 * Whole object fit in node boundary
-		 **/
-		Fit,
-
-		/**
-		 * Part of object in node boundary or
-		 * cover entire boundary
-		 **/
-		Overlap,
-
-		/**
-		 * Object not intersect or fit in node boundary
-		 **/
-		None
-	}
-
-	public interface ICollisionType{
-
-		CollisionResult RectToRect (ConvexRect rect1, ConvexRect rect2);
-		CollisionResult RectToCircle (ConvexRect rect, ConvexCircle circle);
-		CollisionResult CircleToCircle (ConvexCircle circle1, ConvexCircle circle2);
-	}
-		
-	public class ConvexCollision: ICollisionType{
-
-		public CollisionResult RectToRect (ConvexRect rect1, ConvexRect rect2){
-
-			//TODO collision implementation
-			return CollisionResult.None;
-		
-		}
-
-		public CollisionResult RectToCircle (ConvexRect rect, ConvexCircle circle){
-
-			//TODO collision implementation
-			return CollisionResult.None;
-		}
-
-		public CollisionResult CircleToCircle (ConvexCircle circle1, ConvexCircle circle2){
-
-			//TODO collision implementation
-			return CollisionResult.None;
-		}
-	}
-}
 

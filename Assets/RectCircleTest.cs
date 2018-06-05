@@ -19,7 +19,7 @@ public class RectCircleTest : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-		rect1 = new NodeBound (rectCenter, new Vector2 (3.0f, 3.0f));
+		rect1 = new NodeBound (rectCenter, new Vector2 (3.0f, 2.0f));
 	}
 	
 	// Update is called once per frame
@@ -29,7 +29,7 @@ public class RectCircleTest : MonoBehaviour {
 		circlePos = circlePosition;
 		circleRadius = cRadius;
 
-		//rect1.RotationDegree += 3 * Time.deltaTime;
+		//rect1.RotationDegree += 5 * Time.deltaTime;
 
 		CheckCollision ();
 	}
