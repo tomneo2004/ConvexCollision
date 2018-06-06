@@ -2,32 +2,41 @@
 using System.Collections.Generic;
 using UnityEngine;
 using BoundRect;
+using NP.Convex.Shape;
 
 public class RectCollisionTest : MonoBehaviour {
 
-	NodeBound rect1;
-	NodeBound rect2;
+	ConvexRect rect1;
+	ConvexRect rect2;
 
 	public Vector2 center1;
+	public Vector2 rect1Size;
 	public Vector2 center2;
+	public Vector2 rect2Size;
 
 	// Use this for initialization
 	void Start () {
 
-		rect1 = new NodeBound (center1, new Vector2 (3.0f, 3.0f));
-		rect2 = new NodeBound (center2, new Vector2 (3.0f, 3.0f));
+		rect1 = new ConvexRect (center1, rect1Size);
+		rect2 = new ConvexRect (center2, rect2Size);
 	}
 	
 	// Update is called once per frame
 	void Update () {
 
 		rect1.center = center1;
+		rect1.widthFromCenter = rect1Size.x;
+		rect1.heightFromCenter = rect1Size.y;
 		rect2.center = center2;
+		rect2.widthFromCenter = rect2Size.x;
+		rect2.heightFromCenter = rect2Size.y;
 
 		CheckCollision ();
 	}
 
 	void CheckCollision(){
+
+		Debug.Log (rect2.CollideWithRect (rect1));
 
 		/*
 		//projection axis
@@ -68,7 +77,7 @@ public class RectCollisionTest : MonoBehaviour {
 		else
 			Debug.Log ("collision");
 		*/
-
+		/*
 		bool collision = true;
 
 		Vector2[] rect1Normals = GetRectangleNormal (rect1);
@@ -107,9 +116,11 @@ public class RectCollisionTest : MonoBehaviour {
 			Debug.Log ("Collision");
 		else
 			Debug.Log ("No collision");
+		*/
 		
 	}
 
+	/*
 	Vector2[] GetRectangleNormal(NodeBound rect){
 
 		Vector2[] normals = new Vector2 [4];
@@ -133,6 +144,7 @@ public class RectCollisionTest : MonoBehaviour {
 
 		return normals;
 	}
+	*/
 
 	void OnDrawGizmos(){
 
@@ -148,6 +160,7 @@ public class RectCollisionTest : MonoBehaviour {
 					new Vector3 (corners [i + 1].x, corners [i + 1].y));
 			}
 
+			/*
 			Gizmos.DrawLine (new Vector3 (corners [3].x, corners [3].y),
 				new Vector3 (corners [0].x, corners [0].y));
 
@@ -156,6 +169,7 @@ public class RectCollisionTest : MonoBehaviour {
 
 			Gizmos.color = Color.yellow;
 			Gizmos.DrawLine (new Vector3 (0.0f, 0.0f), new Vector2 (rect1.xMax, rect1.yMax));
+			*/
 		}
 
 		if (rect2 != null) {
@@ -170,6 +184,7 @@ public class RectCollisionTest : MonoBehaviour {
 					new Vector3 (corners [i + 1].x, corners [i + 1].y));
 			}
 
+			/*
 			Gizmos.DrawLine (new Vector3 (corners [3].x, corners [3].y),
 				new Vector3 (corners [0].x, corners [0].y));
 
@@ -178,6 +193,7 @@ public class RectCollisionTest : MonoBehaviour {
 
 			Gizmos.color = Color.yellow;
 			Gizmos.DrawLine (new Vector3 (0.0f, 0.0f), new Vector2 (rect2.xMax, rect2.yMax));
+			*/
 		}
 			
 	}

@@ -2,132 +2,140 @@
 using System.Collections.Generic;
 using UnityEngine;
 using BoundRect;
+using NP.Convex.Shape;
 
 public class RectCircleTest : MonoBehaviour {
 
-	NodeBound rect1;
-	Vector2 circlePos;
-	float circleRadius;
-	Color circleCollideDrawColor = Color.red;
+	ConvexRect rect1;
+	ConvexCircle circle;
 
 	public Vector2 rectCenter;
+	public Vector2 rectSize;
 	public Vector2 circlePosition;
 	public float cRadius = 3.0f;
-	public Color collisionColor = Color.red;
-	public Color nonCollisionColor = Color.white;
+
 
 	// Use this for initialization
 	void Start () {
 
-		rect1 = new NodeBound (rectCenter, new Vector2 (3.0f, 3.0f));
+		rect1 = new ConvexRect (rectCenter, rectSize);
+		circle = new ConvexCircle (circlePosition, cRadius);
 	}
 	
 	// Update is called once per frame
 	void Update () {
 
 		rect1.center = rectCenter;
-		circlePos = circlePosition;
-		circleRadius = cRadius;
+		rect1.widthFromCenter = rectSize.x;
+		rect1.heightFromCenter = rectSize.y;
+		circle.Center = circlePosition;
+		circle.Radius = cRadius;
 
-		//rect1.RotationDegree += 3 * Time.deltaTime;
+		//rect1.RotationDegree += 5 * Time.deltaTime;
 
 		CheckCollision ();
 	}
 
 	void CheckCollision(){
 
+		#region old code
 		//all corners
-		Vector2[] corners = rect1.AllCorners;
+//		Vector2[] corners = rect1.AllCorners;
+//
+//		bool collision = true;
+//
+//		/**
+//		 * Find closest corner to circle center then make a line between that corner and circle center into projection axis
+//		 * Projecting all corner to that axis then find min and max corner
+//		 * Check if circle is overlap with rectangle
+//		 * 
+//		 * This solve problem when circle contact each corner vertex
+//		 **/
+//		//find closest corner and compare distance
+//		int closestCornerIndex = 0;
+//		int currentCornerIndex = 1;
+//		while (currentCornerIndex < corners.Length) {
+//
+//			if ((circlePos - corners [closestCornerIndex]).sqrMagnitude > (circlePos - corners [currentCornerIndex]).sqrMagnitude)
+//				closestCornerIndex = currentCornerIndex;
+//
+//			currentCornerIndex++;
+//		}
+//
+//		//projection axis from closest corner to circle center
+//		Vector2 p = circlePos - corners [closestCornerIndex];
+//
+//		//base on axis find min and max corner
+//		float rMin = 0.0f;
+//		float rMax = 0.0f;
+//		for (int i = 0; i < corners.Length; i++) {
+//
+//			rMax = Mathf.Max (rMax, Vector2.Dot (p.normalized, corners [i]));
+//			rMin = Mathf.Min (rMin, Vector2.Dot (p.normalized, corners [i]));
+//		}
+//
+//		//find circle center projection
+//		float cP = Vector2.Dot (p, circlePos);
+//
+//		//check if circle is overlap rectangle
+//		if (rMax < (cP - circleRadius) || rMin > (cP + circleRadius))
+//			collision = false;
+//		else
+//			collision = true;
+//
+//		/**
+//		 * Find 4 corner's normal and make it as prjection axis
+//		 * Go throught each normal(corner)
+//		 * Find min and max projection of rectangle's corner base on that axis
+//		 * Project circle center on that axis
+//		 * Check if circle overlap rectangle
+//		 * 
+//		 * This solve problem while circle contact edge of rectangle
+//		 **/
+//		//Ignore edge check if circle not contact with 4 corners(vertices)
+//		if (collision == true) {
+//
+//			Vector2[] normals = GetRectangleNormal (rect1);
+//
+//			for (int i = 0; i < normals.Length; i++) {
+//
+//				//4 corners projection
+//				float r1Dot1 = Vector2.Dot (normals [i], corners [0]);
+//				float r1Dot2 = Vector2.Dot (normals [i], corners [1]);
+//				float r1Dot3 = Vector2.Dot (normals [i], corners [2]);
+//				float r1Dot4 = Vector2.Dot (normals [i], corners [3]);
+//
+//				//corner min and max on this normal(projection axis)
+//				float r1PMin = Mathf.Min (r1Dot1, Mathf.Min (r1Dot2, Mathf.Min (r1Dot3, r1Dot4)));
+//				float r1PMax = Mathf.Max (r1Dot1, Mathf.Max (r1Dot2, Mathf.Max (r1Dot3, r1Dot4)));
+//
+//				//circle center projection on this normal(projection axis)
+//				float circleP = Vector2.Dot (normals [i], circlePos);
+//
+//				//check if circle overlap rectangle
+//				if ((circleP - circleRadius) > r1PMax || (circleP + circleRadius) < r1PMin) {
+//
+//					collision = false;
+//					break;
+//				}
+//			}
+//		}
+//
+//
+//		if (collision) {
+//			circleCollideDrawColor = collisionColor;
+//			Debug.Log ("collision");
+//		} else {
+//			circleCollideDrawColor = nonCollisionColor;
+//			Debug.Log ("no collision");
+//		}
+		#endregion
 
-		bool collision = true;
+		Debug.Log (rect1.CollideWithCircle(circle));
 
-		/**
-		 * Find closest corner to circle center then make a line between that corner and circle center into projection axis
-		 * Projecting all corner to that axis then find min and max corner
-		 * Check if circle is overlap with rectangle
-		 * 
-		 * This solve problem when circle contact each corner vertex
-		 **/
-		//find closest corner and compare distance
-		int closestCornerIndex = 0;
-		int currentCornerIndex = 1;
-		while (currentCornerIndex < corners.Length) {
-
-			if ((circlePos - corners [closestCornerIndex]).sqrMagnitude > (circlePos - corners [currentCornerIndex]).sqrMagnitude)
-				closestCornerIndex = currentCornerIndex;
-
-			currentCornerIndex++;
-		}
-
-		//projection axis from closest corner to circle center
-		Vector2 p = circlePos - corners [closestCornerIndex];
-
-		//base on axis find min and max corner
-		float rMin = 0.0f;
-		float rMax = 0.0f;
-		for (int i = 0; i < corners.Length; i++) {
-
-			rMax = Mathf.Max (rMax, Vector2.Dot (p.normalized, corners [i]));
-			rMin = Mathf.Min (rMin, Vector2.Dot (p.normalized, corners [i]));
-		}
-
-		//find circle center projection
-		float cP = Vector2.Dot (p, circlePos);
-
-		//check if circle is overlap rectangle
-		if (rMax < (cP - circleRadius) || rMin > (cP + circleRadius))
-			collision = false;
-		else
-			collision = true;
-
-		/**
-		 * Find 4 corner's normal and make it as prjection axis
-		 * Go throught each normal(corner)
-		 * Find min and max projection of rectangle's corner base on that axis
-		 * Project circle center on that axis
-		 * Check if circle overlap rectangle
-		 * 
-		 * This solve problem while circle contact edge of rectangle
-		 **/
-		//Ignore edge check if circle not contact with 4 corners(vertices)
-		if (collision == true) {
-
-			Vector2[] normals = GetRectangleNormal (rect1);
-
-			for (int i = 0; i < normals.Length; i++) {
-
-				//4 corners projection
-				float r1Dot1 = Vector2.Dot (normals [i], corners [0]);
-				float r1Dot2 = Vector2.Dot (normals [i], corners [1]);
-				float r1Dot3 = Vector2.Dot (normals [i], corners [2]);
-				float r1Dot4 = Vector2.Dot (normals [i], corners [3]);
-
-				//corner min and max on this normal(projection axis)
-				float r1PMin = Mathf.Min (r1Dot1, Mathf.Min (r1Dot2, Mathf.Min (r1Dot3, r1Dot4)));
-				float r1PMax = Mathf.Max (r1Dot1, Mathf.Max (r1Dot2, Mathf.Max (r1Dot3, r1Dot4)));
-
-				//circle center projection on this normal(projection axis)
-				float circleP = Vector2.Dot (normals [i], circlePos);
-
-				//check if circle overlap rectangle
-				if ((circleP - circleRadius) > r1PMax || (circleP + circleRadius) < r1PMin) {
-
-					collision = false;
-					break;
-				}
-			}
-		}
-
-
-		if (collision) {
-			circleCollideDrawColor = collisionColor;
-			Debug.Log ("collision");
-		} else {
-			circleCollideDrawColor = nonCollisionColor;
-			Debug.Log ("no collision");
-		}
 	}
 
+	/*
 	Vector2[] GetRectangleNormal(NodeBound rect){
 
 		Vector2[] normals = new Vector2 [4];
@@ -151,7 +159,9 @@ public class RectCircleTest : MonoBehaviour {
 
 		return normals;
 	}
+	*/
 
+	/*
 	Vector2 GetVectorNormal(Vector2 vector, bool leftHand = true){
 
 		if (leftHand)
@@ -159,7 +169,7 @@ public class RectCircleTest : MonoBehaviour {
 		else
 			return new Vector2 (vector.y, -vector.x).normalized;
 	}
-
+	*/
 	void OnDrawGizmos(){
 
 		if (rect1 == null)
@@ -213,16 +223,16 @@ public class RectCircleTest : MonoBehaviour {
 		//Gizmos.DrawSphere (new Vector3 (circlePos.x, circlePos.y), circleRadius);
 
 		//circle
-		Gizmos.color = circleCollideDrawColor;
-		float x = circleRadius*Mathf.Cos(0);
-		float y = circleRadius*Mathf.Sin(0);
-		Vector2 pos = circlePos + new Vector2 (x, y);
+		Gizmos.color = Color.white;
+		float x = circle.Radius*Mathf.Cos(0);
+		float y = circle.Radius*Mathf.Sin(0);
+		Vector2 pos = circle.Center + new Vector2 (x, y);
 		Vector2 newPos = pos;
 		Vector2 lastPos = pos;
 		for(float theta = 0.1f; theta<Mathf.PI*2.0f; theta+=0.1f){
-			x = circleRadius*Mathf.Cos(theta);
-			y = circleRadius*Mathf.Sin(theta);
-			newPos = circlePos+ new Vector2(x,y);
+			x = circle.Radius*Mathf.Cos(theta);
+			y = circle.Radius*Mathf.Sin(theta);
+			newPos = circle.Center+ new Vector2(x,y);
 			Gizmos.DrawLine(pos,newPos);
 			pos = newPos;
 		}

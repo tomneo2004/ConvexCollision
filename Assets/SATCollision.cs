@@ -2,11 +2,80 @@
 using System.Collections.Generic;
 using UnityEngine;
 using NP.Convex.Shape;
+using NP.Convex.Collision;
+
+namespace NP.Convex.Collision{
+
+	/**
+	 * Collision result
+	 **/
+	public enum CollisionResult{
+
+		/**
+		 * Whole object fit in node boundary
+		 **/
+		Fit,
+
+		/**
+		 * Part of object in node boundary or
+		 * cover entire boundary
+		 **/
+		Overlap,
+
+		/**
+		 * Object not intersect or fit in node boundary
+		 **/
+		None
+	}
+
+	/**
+	 * Collision interface for all kind of shape
+	 **/
+	public interface IConvexCollision{
+
+		bool ContainPoint2D (Vector2 point);
+	}
+
+	/**
+	 * Collision interface for rectangle shape
+	 **/
+	public interface IConvexRectCollision : IConvexCollision{
+
+		CollisionResult CollideWithRect(ConvexRect otherRect);
+		CollisionResult CollideWithCircle(ConvexCircle otherCircle);
+	}
+
+	/**
+	 * Collision interface for circle shape
+	 **/
+	public interface IConvexCircleCollision : IConvexCollision{
+
+		CollisionResult CollideWithCircle (ConvexCircle otherCircle);
+		CollisionResult CollideWithRect (ConvexRect otherRect);
+	}
+}
 
 namespace NP.Convex.Shape{
 
-	public class ConvexRect{
+	public class ConvexUtility{
 
+		public static Vector2 GetVectorNormal(Vector2 vector, bool leftHand = true){
+
+			if (leftHand)
+				return new Vector2 (-vector.y, vector.x).normalized;
+			else
+				return new Vector2 (vector.y, -vector.x).normalized;
+		}
+	}
+
+	/**
+	 * A convex of rectangle shape
+	 * 
+	 * Implement IConvexRectCollision interface
+	 **/
+	public class ConvexRect : IConvexRectCollision{
+
+		#region Properties
 		float _x;
 
 		/**
@@ -177,6 +246,38 @@ namespace NP.Convex.Shape{
 		 **/
 		public Vector2 BLCorner{ get{  return new Vector2 (_x, _y - _height);}}
 
+		/**
+		 * Return 4 corners' normal vector
+		 * 
+		 * Normal is perpendicular to the vector
+		 **/
+		public Vector2[] Normals{
+
+			get{ 
+			
+				Vector2[] normals = new Vector2 [4];
+
+				Vector2[] corners = AllCorners;
+
+				Vector2 v;
+				Vector2 normal;
+				for (int i = 0; i < corners.Length - 1; i++) {
+
+					v = corners [i + 1] - corners [i];
+					normal = new Vector2 (-v.y, v.x);
+
+					normals [i] = normal.normalized;
+				}
+
+				v = corners [0] - corners [3];
+				normal = new Vector2 (-v.y, v.x);
+
+				normals [3] = normal.normalized;
+
+				return normals;
+			}
+		}
+
 		public float xMin{
 
 			get{
@@ -224,14 +325,18 @@ namespace NP.Convex.Shape{
 				return new Vector2 (xMax, yMax);
 			}
 		}
+		#endregion
 
+		#region Class methods
 		public static ConvexRect zero{
 
 			get{
 				return new ConvexRect (0.0f, 0.0f, 0.0f, 0.0f);
 			}
 		}
+		#endregion
 
+		#region Constructor
 		public ConvexRect(float x, float y, float width, float height){
 
 			_x = x;
@@ -247,12 +352,16 @@ namespace NP.Convex.Shape{
 			_width = Mathf.Abs(size.x);
 			_height = Mathf.Abs(size.y);
 		}
+		#endregion
 
+		#region Private methods
 		void CalculateCenter(){
 
 			_center = new Vector2 (_x + _width / 2.0f, _y - _height / 2.0f);
 		}
+		#endregion
 
+		#region Public methods
 		/**
 		 * Extend rectangle with amount of value on x and y
 		 * 
@@ -266,7 +375,12 @@ namespace NP.Convex.Shape{
 			_x = _center.x - _width / 2.0f;
 			_y = _center.y + _height / 2.0f;
 		}
+		#endregion
 
+		#region IConvexCollisioin
+		/**
+		 * Return true if rectangle contain point
+		 **/
 		public bool ContainPoint2D(Vector2 point){
 
 			if (point.x >= xMin && point.x <= xMax
@@ -275,13 +389,141 @@ namespace NP.Convex.Shape{
 
 			return false;
 		}
+		#endregion
+
+		#region IConvexRectCollision
+		public CollisionResult CollideWithRect(ConvexRect otherRect){
+
+			bool collision = true;
+
+			//this rectangle's normal of 4 corner and use it as projection axis
+			Vector2[] rect1Normals = this.Normals;
+			Vector2[] rect1AllCorners = this.AllCorners;
+			Vector2[] rect2AllCorners = otherRect.AllCorners;
+
+			//For each normals in this rectangle
+			for (int i = 0; i < rect1Normals.Length; i++) {
+
+				//Projecting all corners from rect1 to rect1's normal
+				float r1Dot1 = Vector2.Dot (rect1Normals [i], rect1AllCorners [0]);
+				float r1Dot2 = Vector2.Dot (rect1Normals [i], rect1AllCorners [1]);
+				float r1Dot3 = Vector2.Dot (rect1Normals [i], rect1AllCorners [2]);
+				float r1Dot4 = Vector2.Dot (rect1Normals [i], rect1AllCorners [3]);
+
+				//Find rect1 max and min projection
+				float r1PMin = Mathf.Min (r1Dot1, Mathf.Min (r1Dot2, Mathf.Min (r1Dot3, r1Dot4)));
+				float r1PMax = Mathf.Max (r1Dot1, Mathf.Max (r1Dot2, Mathf.Max (r1Dot3, r1Dot4)));
+
+				//Projecting all corners from rect2 to rect1's normal
+				float r2Dot1 = Vector2.Dot (rect1Normals [i], rect2AllCorners [0]);
+				float r2Dot2 = Vector2.Dot (rect1Normals [i], rect2AllCorners [1]);
+				float r2Dot3 = Vector2.Dot (rect1Normals [i], rect2AllCorners [2]);
+				float r2Dot4 = Vector2.Dot (rect1Normals [i], rect2AllCorners [3]);
+
+				//Find rect2 max and min projection
+				float r2PMin = Mathf.Min (r2Dot1, Mathf.Min (r2Dot2, Mathf.Min (r2Dot3, r2Dot4)));
+				float r2PMax = Mathf.Max (r2Dot1, Mathf.Max (r2Dot2, Mathf.Max (r2Dot3, r2Dot4)));
+
+				//Two rectangles not collide each other if there is a gap
+				//and we do not check further
+				if (r2PMin > r1PMax || r2PMax < r1PMin) {
+
+					collision = false;
+
+					break;
+				}
+			}
+
+			//Check if this rectangle is inside another rectangle
+			if (collision == true) {
+
+				bool inside = true;
+
+				//4 corners of this rectangle
+				foreach (Vector2 corner in AllCorners) {
+
+					//if other rectangle not contain this corner
+					if (!otherRect.ContainPoint2D (corner)) {
+					
+						inside = false;
+						break;
+					}
+				}
+
+				if (inside == true)
+					return CollisionResult.Fit;
+				
+				return CollisionResult.Overlap;
+			}
+
+			//There is no collision between two rectangles;
+			return CollisionResult.None;
+		}
+
+		public CollisionResult CollideWithCircle(ConvexCircle otherCircle){
+
+			//We use circle collide rect to chcek
+			//reduce duplicate code because code is all most the same only
+			//rectangle inside circle need to be checked
+			CollisionResult result = otherCircle.CollideWithRect (this);
+
+			//Check rectangle is inside circle when overlap
+			if (result == CollisionResult.Overlap) {
+
+
+				/**
+				 * For each corner of recntangle
+				 * we check if corner inside circle
+				 * 
+				 * Return fit if all corner insdie circle
+				 **/
+				Vector2[] corners = AllCorners;
+
+				for (int i = 0; i < corners.Length; i++) {
+
+					//projection axis from corner to circle center
+					Vector2 p = otherCircle.Center - corners [i];
+
+					//corner projection
+					float cornerP = Vector2.Dot (p.normalized, corners [i]);
+
+					//circle center projection
+					float circleP = Vector2.Dot (p.normalized, otherCircle.Center);
+
+
+					//if corner projection is outside of circle return overlap
+					if ((circleP - otherCircle.Radius) > cornerP || (circleP + otherCircle.Radius) < cornerP) {
+
+						return result;
+
+					} 
+				}
+
+				return CollisionResult.Fit;
+			}
+
+			//If circle fit in this rectangle return overlap
+			//as from rectangle poit of view rectangle overlap circle
+			if (result == CollisionResult.Fit)
+				return CollisionResult.Overlap;
+
+			return result;
+		}
+		#endregion
 	}
 
-	public class ConvexCircle{
 
-		float _center;
+	/**
+	 * A convex of circle shape
+	 * 
+	 * Implement IConvexCircleCollision interface
+	 **/
+	public class ConvexCircle : IConvexCircleCollision{
+		
+		#region Properties
+		Vector2 _center;
 
-		public float Center{
+		public Vector2 Center{
 
 			get{
 				return _center;
@@ -306,58 +548,183 @@ namespace NP.Convex.Shape{
 				_radius = value;
 			}
 		}
+		#endregion
+
+		#region Constructor
+		public ConvexCircle(Vector2 center, float radius){
+
+			_center = center;
+			_radius = radius;
+		}
+		#endregion
+
+		#region IConvexCollisioin
+		/**
+		 * Return true if circle contain point
+		 **/
+		public bool ContainPoint2D(Vector2 point){
+
+			float xMin = _center.x - _radius;
+			float xMax = _center.x + _radius;
+			float yMin = _center.y - _radius;
+			float yMax = _center.y + _radius;
+
+			if (point.x >= xMin && point.x <= xMax
+				&& point.y >= yMin && point.y <= yMax)
+				return true;
+
+			return false;
+		}
+		#endregion
+
+		#region IConvexCircleCollision
+		public CollisionResult CollideWithCircle (ConvexCircle otherCircle){
+
+			bool collision = true;
+
+			Vector2 p = otherCircle.Center - _center;
+
+			//This circle projection
+			float circleProj = Vector2.Dot (p.normalized, _center);
+			float circleProjMin = circleProj - _radius;
+			float circleProjMax = circleProj + _radius;
+
+			//Another circle projection
+			float otherCircleProj = Vector2.Dot (p.normalized, otherCircle.Center);
+			float otherCircleProjMin = otherCircleProj - otherCircle.Radius;
+			float otherCircleProjMax = otherCircleProj + otherCircle.Radius;
+
+			if (circleProjMin > otherCircleProjMax || otherCircleProjMin > circleProjMax)
+				collision = false;
+
+			//Check if circle fit inside another circle
+			if (collision == true) {
+
+				if (circleProjMin > otherCircleProjMin && circleProjMax < otherCircleProjMax)
+					return CollisionResult.Fit;
+
+				return CollisionResult.Overlap;
+			}
+
+			return CollisionResult.None;
+		}
+
+		public CollisionResult CollideWithRect (ConvexRect otherRect){
+
+			//All corners from rectangle
+			Vector2[] corners = otherRect.AllCorners;
+
+			bool collision = true;
+
+			/**
+			 * Find closest corner to circle center then make a line between that corner and circle center into projection axis
+		 	* Projecting all corner to that axis then find min and max corner
+			 * Check if circle is overlap with rectangle
+			 * 
+			 * This solve problem when circle contact each corner vertex
+			 **/
+			//find closest corner and compare distance
+			int closestCornerIndex = 0;
+			int currentCornerIndex = 1;
+			while (currentCornerIndex < corners.Length) {
+
+				if ((_center - corners [closestCornerIndex]).sqrMagnitude > (_center - corners [currentCornerIndex]).sqrMagnitude)
+					closestCornerIndex = currentCornerIndex;
+
+				currentCornerIndex++;
+			}
+
+			//projection axis from closest corner to circle center
+			Vector2 p = _center - corners [closestCornerIndex];
+
+			//base on axis find min and max corner
+			float rMin = 0.0f;
+			float rMax = 0.0f;
+			for (int i = 0; i < corners.Length; i++) {
+
+				rMax = Mathf.Max (rMax, Vector2.Dot (p.normalized, corners [i]));
+				rMin = Mathf.Min (rMin, Vector2.Dot (p.normalized, corners [i]));
+			}
+
+			//find circle center projection
+			float cP = Vector2.Dot (p.normalized, _center);
+
+			//check if circle is overlap rectangle
+			if (rMax < (cP - _radius) || rMin > (cP + _radius))
+				collision = false;
+			else
+				collision = true;
+
+			/**
+			 * Find 4 corner's normal and make it as prjection axis
+			 * Go throught each normal(corner)
+			 * Find min and max projection of rectangle's corner base on that axis
+			 * Project circle center on that axis
+		 	* Check if circle overlap rectangle
+		 	* 
+		 	* This solve problem while circle contact edge of rectangle
+		 	* 
+		 	* We also check if circle inside rectangle
+		 	**/
+			//Ignore edge check if circle not contact with 4 corners(vertices)
+			if (collision == true) {
+
+				bool inside = true;
+
+				Vector2[] normals = otherRect.Normals;
+				float r1Dot1, r1Dot2, r1Dot3, r1Dot4, r1PMin, r1PMax;
+
+				for (int i = 0; i < normals.Length; i++) {
+
+					//4 corners projection
+					r1Dot1 = Vector2.Dot (normals [i], corners [0]);
+					r1Dot2 = Vector2.Dot (normals [i], corners [1]);
+					r1Dot3 = Vector2.Dot (normals [i], corners [2]);
+					r1Dot4 = Vector2.Dot (normals [i], corners [3]);
+
+					//corner min and max on this normal(projection axis)
+					r1PMin = Mathf.Min (r1Dot1, Mathf.Min (r1Dot2, Mathf.Min (r1Dot3, r1Dot4)));
+					r1PMax = Mathf.Max (r1Dot1, Mathf.Max (r1Dot2, Mathf.Max (r1Dot3, r1Dot4)));
+
+					//circle center projection on this normal(projection axis)
+					float circleP = Vector2.Dot (normals [i], _center);
+
+					//check if circle overlap rectangle
+					if ((circleP - _radius) > r1PMax || (circleP + _radius) < r1PMin) {
+
+						collision = false;
+						break;
+					}
+
+					//Circle intersect with rectangle then check if circle inside rectangle
+					//If insde we &(AND) value with true other wise false
+					if ((circleP - _radius) > r1PMin && (circleP + _radius) > r1PMin) {
+
+						inside &= true;
+					} else {
+
+						inside &= false;
+					}
+				}
+
+				//if circle collide rectangle 
+				if (collision) {
+
+					//If inside rectangle
+					if (inside)
+						return CollisionResult.Fit;
+					else
+						return CollisionResult.Overlap;
+				}
+			}
+				
+			return CollisionResult.None;
+		}
+		#endregion
 	}
+
+
 }
 
-namespace NP.Convex.Collision{
 
-
-	public enum CollisionResult{
-
-		/**
-		 * Whole object fit in node boundary
-		 **/
-		Fit,
-
-		/**
-		 * Part of object in node boundary or
-		 * cover entire boundary
-		 **/
-		Overlap,
-
-		/**
-		 * Object not intersect or fit in node boundary
-		 **/
-		None
-	}
-
-	public interface ICollisionType{
-
-		CollisionResult RectToRect (ConvexRect rect1, ConvexRect rect2);
-		CollisionResult RectToCircle (ConvexRect rect, ConvexCircle circle);
-		CollisionResult CircleToCircle (ConvexCircle circle1, ConvexCircle circle2);
-	}
-		
-	public class ConvexCollision: ICollisionType{
-
-		public CollisionResult RectToRect (ConvexRect rect1, ConvexRect rect2){
-
-			//TODO collision implementation
-			return CollisionResult.None;
-		
-		}
-
-		public CollisionResult RectToCircle (ConvexRect rect, ConvexCircle circle){
-
-			//TODO collision implementation
-			return CollisionResult.None;
-		}
-
-		public CollisionResult CircleToCircle (ConvexCircle circle1, ConvexCircle circle2){
-
-			//TODO collision implementation
-			return CollisionResult.None;
-		}
-	}
-}
 
