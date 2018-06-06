@@ -343,6 +343,7 @@ namespace NP.Convex.Shape{
 			_y = y;
 			_width = Mathf.Abs(width);
 			_height = Mathf.Abs(height);
+			CalculateCenter ();
 		}
 
 		public ConvexRect(Vector2 center, Vector2 size){
