@@ -10,6 +10,7 @@ public class RectCircleTest : MonoBehaviour {
 	ConvexCircle circle;
 
 	public Vector2 rectCenter;
+	public Vector2 rectSize;
 	public Vector2 circlePosition;
 	public float cRadius = 3.0f;
 
@@ -17,7 +18,7 @@ public class RectCircleTest : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-		rect1 = new ConvexRect (rectCenter, new Vector2 (3.0f, 3.0f));
+		rect1 = new ConvexRect (rectCenter, rectSize);
 		circle = new ConvexCircle (circlePosition, cRadius);
 	}
 	
@@ -25,6 +26,8 @@ public class RectCircleTest : MonoBehaviour {
 	void Update () {
 
 		rect1.center = rectCenter;
+		rect1.widthFromCenter = rectSize.x;
+		rect1.heightFromCenter = rectSize.y;
 		circle.Center = circlePosition;
 		circle.Radius = cRadius;
 
