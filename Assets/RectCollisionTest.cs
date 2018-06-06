@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using BoundRect;
+using NP.Convex.Shape;
 
 public class RectCollisionTest : MonoBehaviour {
 
-	NodeBound rect1;
-	NodeBound rect2;
+	ConvexRect rect1;
+	ConvexRect rect2;
 
 	public Vector2 center1;
 	public Vector2 center2;
@@ -14,8 +15,8 @@ public class RectCollisionTest : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-		rect1 = new NodeBound (center1, new Vector2 (3.0f, 3.0f));
-		rect2 = new NodeBound (center2, new Vector2 (3.0f, 3.0f));
+		rect1 = new ConvexRect (center1, new Vector2 (3.0f, 3.0f));
+		rect2 = new ConvexRect (center2, new Vector2 (2.0f, 2.0f));
 	}
 	
 	// Update is called once per frame
@@ -28,6 +29,8 @@ public class RectCollisionTest : MonoBehaviour {
 	}
 
 	void CheckCollision(){
+
+		Debug.Log (rect2.CollideWithRect (rect1));
 
 		/*
 		//projection axis
@@ -68,7 +71,7 @@ public class RectCollisionTest : MonoBehaviour {
 		else
 			Debug.Log ("collision");
 		*/
-
+		/*
 		bool collision = true;
 
 		Vector2[] rect1Normals = GetRectangleNormal (rect1);
@@ -107,9 +110,11 @@ public class RectCollisionTest : MonoBehaviour {
 			Debug.Log ("Collision");
 		else
 			Debug.Log ("No collision");
+		*/
 		
 	}
 
+	/*
 	Vector2[] GetRectangleNormal(NodeBound rect){
 
 		Vector2[] normals = new Vector2 [4];
@@ -133,6 +138,7 @@ public class RectCollisionTest : MonoBehaviour {
 
 		return normals;
 	}
+	*/
 
 	void OnDrawGizmos(){
 

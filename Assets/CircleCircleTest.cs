@@ -40,6 +40,8 @@ public class CircleCircleTest : MonoBehaviour {
 
 	void OnDrawGizmos(){
 
+		if (c1 == null || c2 == null)
+			return;
 
 		//circle 1
 		Gizmos.color = Color.white;
