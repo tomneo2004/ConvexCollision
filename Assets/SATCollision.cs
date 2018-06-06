@@ -481,16 +481,17 @@ namespace NP.Convex.Shape{
 
 				for (int i = 0; i < corners.Length; i++) {
 
+					//projection axis from corner to circle center
 					Vector2 p = otherCircle.Center - corners [i];
 
+					//corner projection
 					float cornerP = Vector2.Dot (p.normalized, corners [i]);
 
 					//circle center projection
 					float circleP = Vector2.Dot (p.normalized, otherCircle.Center);
 
 
-					//Circle intersect with rectangle then check if circle inside rectangle
-					//If insde we &(AND) value with true other wise false
+					//if corner projection is outside of circle return overlap
 					if ((circleP - otherCircle.Radius) > cornerP || (circleP + otherCircle.Radius) < cornerP) {
 
 						return result;
