@@ -57,8 +57,20 @@ namespace NP.Convex.Collision{
 
 namespace NP.Convex.Shape{
 
+	/**
+	 * Definition of convex shape ID
+	 **/
+	public enum ConvexShapeID{
+		Rectangle,
+		Circle,
+		Unknow
+	}
+
 	public class ConvexUtility{
 
+		/**
+		 * Get normal for vector
+		 **/
 		public static Vector2 GetVectorNormal(Vector2 vector, bool leftHand = true){
 
 			if (leftHand)
@@ -68,12 +80,25 @@ namespace NP.Convex.Shape{
 		}
 	}
 
+	public abstract class ConvexShape{
+
+		/**
+		 * ID of this shape
+		 **/
+		protected ConvexShapeID _shapeId = ConvexShapeID.Unknow;
+
+		/**
+		 * Get id of this shape
+		 **/
+		public ConvexShapeID ShapeId{ get{ return _shapeId;}}
+	}
+
 	/**
 	 * A convex of rectangle shape
 	 * 
 	 * Implement IConvexRectCollision interface
 	 **/
-	public class ConvexRect : IConvexRectCollision{
+	public class ConvexRect : ConvexShape, IConvexRectCollision{
 
 		#region Properties
 		float _x;
@@ -339,6 +364,8 @@ namespace NP.Convex.Shape{
 		#region Constructor
 		public ConvexRect(float x, float y, float width, float height){
 
+			_shapeId = ConvexShapeID.Rectangle;
+
 			_x = x;
 			_y = y;
 			_width = Mathf.Abs(width);
@@ -347,6 +374,8 @@ namespace NP.Convex.Shape{
 		}
 
 		public ConvexRect(Vector2 center, Vector2 size){
+
+			_shapeId = ConvexShapeID.Rectangle;
 
 			_x = center.x - size.x / 2.0f;
 			_y = center.y + size.y / 2.0f;
@@ -519,7 +548,7 @@ namespace NP.Convex.Shape{
 	 * 
 	 * Implement IConvexCircleCollision interface
 	 **/
-	public class ConvexCircle : IConvexCircleCollision{
+	public class ConvexCircle :ConvexShape, IConvexCircleCollision{
 		
 		#region Properties
 		Vector2 _center;
@@ -553,6 +582,8 @@ namespace NP.Convex.Shape{
 
 		#region Constructor
 		public ConvexCircle(Vector2 center, float radius){
+
+			_shapeId = ConvexShapeID.Circle;
 
 			_center = center;
 			_radius = radius;
