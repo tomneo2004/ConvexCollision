@@ -131,7 +131,7 @@ public class RectCircleTest : MonoBehaviour {
 //		}
 		#endregion
 
-		Debug.Log (rect1.CollideWithCircle(circle));
+		Debug.Log (rect1.IntersectWithShape(circle));
 
 	}
 

@@ -36,7 +36,7 @@ public class RectCollisionTest : MonoBehaviour {
 
 	void CheckCollision(){
 
-		Debug.Log (rect2.CollideWithRect (rect1));
+		Debug.Log (rect2.IntersectWithShape (rect1));
 
 		/*
 		//projection axis
@@ -160,10 +160,11 @@ public class RectCollisionTest : MonoBehaviour {
 					new Vector3 (corners [i + 1].x, corners [i + 1].y));
 			}
 
-			/*
+
 			Gizmos.DrawLine (new Vector3 (corners [3].x, corners [3].y),
 				new Vector3 (corners [0].x, corners [0].y));
 
+			/*
 			Gizmos.color = Color.red;
 			Gizmos.DrawLine (new Vector3 (0.0f, 0.0f), new Vector2 (rect1.xMin, rect1.yMin));
 
@@ -184,10 +185,11 @@ public class RectCollisionTest : MonoBehaviour {
 					new Vector3 (corners [i + 1].x, corners [i + 1].y));
 			}
 
-			/*
+
 			Gizmos.DrawLine (new Vector3 (corners [3].x, corners [3].y),
 				new Vector3 (corners [0].x, corners [0].y));
 
+			/*
 			Gizmos.color = Color.red;
 			Gizmos.DrawLine (new Vector3 (0.0f, 0.0f), new Vector2 (rect2.xMin, rect2.yMin));
 
