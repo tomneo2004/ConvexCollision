@@ -35,7 +35,7 @@ public class CircleCircleTest : MonoBehaviour {
 
 	void CheckCollision(){
 
-		Debug.Log (c1.CollideWithCircle (c2));
+		Debug.Log (c1.IntersectWithShape (c2));
 	}
 
 	void OnDrawGizmos(){

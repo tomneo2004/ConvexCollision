@@ -33,25 +33,8 @@ namespace NP.Convex.Collision{
 	 **/
 	public interface IConvexCollision{
 
+		CollisionResult IntersectWithShape (ConvexShape shape);
 		bool ContainPoint2D (Vector2 point);
-	}
-
-	/**
-	 * Collision interface for rectangle shape
-	 **/
-	public interface IConvexRectCollision : IConvexCollision{
-
-		CollisionResult CollideWithRect(ConvexRect otherRect);
-		CollisionResult CollideWithCircle(ConvexCircle otherCircle);
-	}
-
-	/**
-	 * Collision interface for circle shape
-	 **/
-	public interface IConvexCircleCollision : IConvexCollision{
-
-		CollisionResult CollideWithCircle (ConvexCircle otherCircle);
-		CollisionResult CollideWithRect (ConvexRect otherRect);
 	}
 }
 
@@ -80,8 +63,9 @@ namespace NP.Convex.Shape{
 		}
 	}
 
-	public abstract class ConvexShape{
+	public abstract class ConvexShape : IConvexCollision{
 
+		#region Properties
 		/**
 		 * ID of this shape
 		 **/
@@ -91,6 +75,59 @@ namespace NP.Convex.Shape{
 		 * Get id of this shape
 		 **/
 		public ConvexShapeID ShapeId{ get{ return _shapeId;}}
+		#endregion
+
+		#region IConvexCollision
+		/**
+		 * Check if agent intersect with shape
+		 * 
+		 * Agent will automatically detect which shape is used to calculate collision
+		 **/
+		public virtual CollisionResult IntersectWithShape (ConvexShape shape){
+
+			switch (shape.ShapeId) {
+			case ConvexShapeID.Rectangle:
+				ConvexRect rectShape = shape as ConvexRect;
+				if (rectShape == null) {
+					#if DEBUG
+					Debug.LogError("Unable to down cast ConvexShape to ConvexRect");
+					#endif
+				}
+				return ContactWithRectangle (rectShape);
+			case ConvexShapeID.Circle:
+				ConvexCircle circleShape = shape as ConvexCircle;
+				if (circleShape == null) {
+					#if DEBUG
+					Debug.LogError("Unable to down cast ConvexShape to ConvexCircle");
+					#endif
+				}
+				return ContactWIthCircle (circleShape);
+			case ConvexShapeID.Unknow:
+				#if DEBUG
+				Debug.LogError("Unknow convex shape");
+				#endif
+				break;
+			}
+
+			return CollisionResult.None;
+		}
+			
+		public abstract bool ContainPoint2D (Vector2 point);
+		#endregion
+
+		#region For subclass override
+		//public abstract ConvexShape GetShape ();
+
+		/**
+		 * Subclass must override
+		 **/
+		protected abstract CollisionResult ContactWithRectangle (ConvexRect otherRect);
+
+		/**
+		 * Subclass must override
+		 **/
+		protected abstract CollisionResult ContactWIthCircle (ConvexCircle otherCircle);
+		#endregion
 	}
 
 	/**
@@ -98,7 +135,7 @@ namespace NP.Convex.Shape{
 	 * 
 	 * Implement IConvexRectCollision interface
 	 **/
-	public class ConvexRect : ConvexShape, IConvexRectCollision{
+	public class ConvexRect : ConvexShape{
 
 		#region Properties
 		float _x;
@@ -407,23 +444,9 @@ namespace NP.Convex.Shape{
 		}
 		#endregion
 
-		#region IConvexCollisioin
-		/**
-		 * Return true if rectangle contain point
-		 **/
-		public bool ContainPoint2D(Vector2 point){
-
-			if (point.x >= xMin && point.x <= xMax
-				&& point.y >= yMin && point.y <= yMax)
-				return true;
-
-			return false;
-		}
-		#endregion
-
-		#region IConvexRectCollision
-		public CollisionResult CollideWithRect(ConvexRect otherRect){
-
+		#region override from ConvexShape class
+		protected override CollisionResult ContactWithRectangle (ConvexRect otherRect)
+		{
 			bool collision = true;
 
 			//this rectangle's normal of 4 corner and use it as projection axis
@@ -474,7 +497,7 @@ namespace NP.Convex.Shape{
 
 					//if other rectangle not contain this corner
 					if (!otherRect.ContainPoint2D (corner)) {
-					
+
 						inside = false;
 						break;
 					}
@@ -482,7 +505,7 @@ namespace NP.Convex.Shape{
 
 				if (inside == true)
 					return CollisionResult.Fit;
-				
+
 				return CollisionResult.Overlap;
 			}
 
@@ -490,12 +513,12 @@ namespace NP.Convex.Shape{
 			return CollisionResult.None;
 		}
 
-		public CollisionResult CollideWithCircle(ConvexCircle otherCircle){
-
+		protected override CollisionResult ContactWIthCircle (ConvexCircle otherCircle)
+		{
 			//We use circle collide rect to chcek
 			//reduce duplicate code because code is all most the same only
 			//rectangle inside circle need to be checked
-			CollisionResult result = otherCircle.CollideWithRect (this);
+			CollisionResult result = otherCircle.IntersectWithShape(this);
 
 			//Check rectangle is inside circle when overlap
 			if (result == CollisionResult.Overlap) {
@@ -540,6 +563,24 @@ namespace NP.Convex.Shape{
 			return result;
 		}
 		#endregion
+
+
+		#region IConvexCollisioin
+		/**
+		 * Return true if rectangle contain point
+		 **/
+
+		public override bool ContainPoint2D(Vector2 point){
+
+			if (point.x >= xMin && point.x <= xMax
+				&& point.y >= yMin && point.y <= yMax)
+				return true;
+
+			return false;
+		}
+
+		#endregion
+
 	}
 
 
@@ -548,7 +589,7 @@ namespace NP.Convex.Shape{
 	 * 
 	 * Implement IConvexCircleCollision interface
 	 **/
-	public class ConvexCircle :ConvexShape, IConvexCircleCollision{
+	public class ConvexCircle :ConvexShape{
 		
 		#region Properties
 		Vector2 _center;
@@ -590,59 +631,9 @@ namespace NP.Convex.Shape{
 		}
 		#endregion
 
-		#region IConvexCollisioin
-		/**
-		 * Return true if circle contain point
-		 **/
-		public bool ContainPoint2D(Vector2 point){
-
-			float xMin = _center.x - _radius;
-			float xMax = _center.x + _radius;
-			float yMin = _center.y - _radius;
-			float yMax = _center.y + _radius;
-
-			if (point.x >= xMin && point.x <= xMax
-				&& point.y >= yMin && point.y <= yMax)
-				return true;
-
-			return false;
-		}
-		#endregion
-
-		#region IConvexCircleCollision
-		public CollisionResult CollideWithCircle (ConvexCircle otherCircle){
-
-			bool collision = true;
-
-			Vector2 p = otherCircle.Center - _center;
-
-			//This circle projection
-			float circleProj = Vector2.Dot (p.normalized, _center);
-			float circleProjMin = circleProj - _radius;
-			float circleProjMax = circleProj + _radius;
-
-			//Another circle projection
-			float otherCircleProj = Vector2.Dot (p.normalized, otherCircle.Center);
-			float otherCircleProjMin = otherCircleProj - otherCircle.Radius;
-			float otherCircleProjMax = otherCircleProj + otherCircle.Radius;
-
-			if (circleProjMin > otherCircleProjMax || otherCircleProjMin > circleProjMax)
-				collision = false;
-
-			//Check if circle fit inside another circle
-			if (collision == true) {
-
-				if (circleProjMin > otherCircleProjMin && circleProjMax < otherCircleProjMax)
-					return CollisionResult.Fit;
-
-				return CollisionResult.Overlap;
-			}
-
-			return CollisionResult.None;
-		}
-
-		public CollisionResult CollideWithRect (ConvexRect otherRect){
-
+		#region Shape collision calculation
+		protected override CollisionResult ContactWithRectangle (ConvexRect otherRect)
+		{
 			//All corners from rectangle
 			Vector2[] corners = otherRect.AllCorners;
 
@@ -749,10 +740,61 @@ namespace NP.Convex.Shape{
 						return CollisionResult.Overlap;
 				}
 			}
-				
+
+			return CollisionResult.None;
+		}
+
+		protected override CollisionResult ContactWIthCircle (ConvexCircle otherCircle)
+		{
+			bool collision = true;
+
+			Vector2 p = otherCircle.Center - _center;
+
+			//This circle projection
+			float circleProj = Vector2.Dot (p.normalized, _center);
+			float circleProjMin = circleProj - _radius;
+			float circleProjMax = circleProj + _radius;
+
+			//Another circle projection
+			float otherCircleProj = Vector2.Dot (p.normalized, otherCircle.Center);
+			float otherCircleProjMin = otherCircleProj - otherCircle.Radius;
+			float otherCircleProjMax = otherCircleProj + otherCircle.Radius;
+
+			if (circleProjMin > otherCircleProjMax || otherCircleProjMin > circleProjMax)
+				collision = false;
+
+			//Check if circle fit inside another circle
+			if (collision == true) {
+
+				if (circleProjMin > otherCircleProjMin && circleProjMax < otherCircleProjMax)
+					return CollisionResult.Fit;
+
+				return CollisionResult.Overlap;
+			}
+
 			return CollisionResult.None;
 		}
 		#endregion
+
+		#region IConvexCollisioin
+		/**
+		 * Return true if circle contain point
+		 **/
+		public override bool ContainPoint2D(Vector2 point){
+
+			float xMin = _center.x - _radius;
+			float xMax = _center.x + _radius;
+			float yMin = _center.y - _radius;
+			float yMax = _center.y + _radius;
+
+			if (point.x >= xMin && point.x <= xMax
+				&& point.y >= yMin && point.y <= yMax)
+				return true;
+
+			return false;
+		}
+		#endregion
+
 	}
 
 
