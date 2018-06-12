@@ -26,8 +26,9 @@ public class RectCircleTest : MonoBehaviour {
 	void Update () {
 
 		rect1.center = rectCenter;
-		rect1.widthFromCenter = rectSize.x;
-		rect1.heightFromCenter = rectSize.y;
+		rect1.width = rectSize.x;
+		rect1.height = rectSize.y;
+		rect1.Rotation += 10.0f * Time.deltaTime;
 		circle.Center = circlePosition;
 		circle.Radius = cRadius;
 

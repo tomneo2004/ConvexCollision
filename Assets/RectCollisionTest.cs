@@ -17,7 +17,7 @@ public class RectCollisionTest : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 
-		rect1 = new ConvexRect (center1, rect1Size);
+		rect1 = new ConvexRect (center1.x - rect1Size.x/2.0f, center1.y + rect1Size.y/2.0f, rect1Size.x, rect1Size.y);
 		rect2 = new ConvexRect (center2, rect2Size);
 	}
 	
@@ -25,12 +25,13 @@ public class RectCollisionTest : MonoBehaviour {
 	void Update () {
 
 		rect1.center = center1;
-		rect1.widthFromCenter = rect1Size.x;
-		rect1.heightFromCenter = rect1Size.y;
+		rect1.width = rect1Size.x;
+		rect1.height = rect1Size.y;
+		rect1.Rotation += 10.0f * Time.deltaTime;
 		rect2.center = center2;
-		rect2.widthFromCenter = rect2Size.x;
-		rect2.heightFromCenter = rect2Size.y;
-
+		rect2.width = rect2Size.x;
+		rect2.height = rect2Size.y;
+		rect2.Rotation += 10.0f * Time.deltaTime;
 		CheckCollision ();
 	}
 
