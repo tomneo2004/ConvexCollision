@@ -140,68 +140,14 @@ namespace NP.Convex.Shape{
 		#region Properties
 		float _x;
 
-		/**
-		 * Get x
-		 * 
-		 * Set x will move rectangle on x axis and remain
-		 * same width. X of center will be changed
-		 **/
-		public float x {
-
-			get {
-				return _x;
-			}
-
-			set {
-				_x = value;
-				CalculateCenter ();
-			}
-		}
-
 		float _y;
-
-		/**
-		 * Get y
-		 * 
-		 * Set y will move rectangle on y axis and remain
-		 * same height. Y of center will be changed 
-		 **/
-		public float y {
-
-			get {
-				return _y;
-			}
-
-			set {
-				_y = value;
-				CalculateCenter ();
-			}
-		}
 
 		float _width;
 
 		/**
-		 * Get width
-		 * 
-		 * Set width will cause bound's width extend from x while
-		 * x remain same position. Center's x will be changed
-		 **/
-		public float width {
-
-			get {
-				return _width;
-			}
-
-			set {
-				_width = value;
-				CalculateCenter ();
-			}
-		}
-
-		/**
 		 * Set width for rectangle extend from center 
 		 **/
-		public float widthFromCenter{
+		public float width{
 
 			set{
 
@@ -214,27 +160,9 @@ namespace NP.Convex.Shape{
 		float _height;
 
 		/**
-		 * Get height
-		 * 
-		 * Set width will cause bound's height extend from y while
-		 * x remain same position. Center's y will be changed
-		 **/
-		public float height {
-
-			get {
-				return _height;
-			}
-
-			set {
-				_height = value;
-				CalculateCenter ();
-			}
-		}
-
-		/**
 		 * Set height for rectangle extend from center 
 		 **/
-		public float heightFromCenter{
+		public float height{
 
 			set{
 
@@ -268,10 +196,25 @@ namespace NP.Convex.Shape{
 			}
 		}
 
+		/**
+		 * Get size of rectangle
+		 **/
 		public Vector2 size{ get{ return new Vector2 (_width, _height);}}
 
+		float _rotation = 0;
+
 		/**
-		 * Get 4 corners of bound in clockwise
+		 * Get and set rotation of rectangle
+		 **/
+		public float Rotation{
+
+			get{ return _rotation;}
+
+			set{ _rotation = value;}
+		}
+
+		/**
+		 * Get 4 corners of bound in clockwise start from topleft
 		 **/
 		public Vector2[] AllCorners{
 
@@ -279,34 +222,14 @@ namespace NP.Convex.Shape{
 
 				Vector2[] corners = new Vector2[4];
 
-				corners [0] = new Vector2 (_x, _y);
-				corners [1] = new Vector2 (_x + _width, _y);
-				corners [2] = new Vector2 (_x + _width, _y - _height);
-				corners [3] = new Vector2 (_x, _y - _height);
+				corners [0] = ApplyRotationToPoint (new Vector2 (_x, _y), _center, _rotation);
+				corners [1] = ApplyRotationToPoint(new Vector2 (_x + _width, _y), _center, _rotation);
+				corners [2] = ApplyRotationToPoint(new Vector2 (_x + _width, _y - _height), _center, _rotation);
+				corners [3] = ApplyRotationToPoint(new Vector2 (_x, _y - _height), _center, _rotation);
 
 				return corners;
 			}
 		}
-
-		/**
-		 * Get TopLeft corner position
-		 **/
-		public Vector2 TLCorner{ get{  return new Vector2 (_x, _y);}}
-
-		/**
-		 * Get TopRight corner position
-		 **/
-		public Vector2 TRCorner{ get{  return new Vector2 (_x + _width, _y);}}
-
-		/**
-		 * Get BottomRight corner position
-		 **/
-		public Vector2 BRCorner{ get{  return new Vector2 (_x + _width, _y - _height);}}
-
-		/**
-		 * Get BottomLeft corner position
-		 **/
-		public Vector2 BLCorner{ get{  return new Vector2 (_x, _y - _height);}}
 
 		/**
 		 * Return 4 corners' normal vector
@@ -344,7 +267,9 @@ namespace NP.Convex.Shape{
 
 			get{
 
-				return Mathf.Min (_x, _x + _width);
+
+				Vector2[] corners = AllCorners;
+				return Mathf.Min (corners [0].x, Mathf.Min (corners [1].x, Mathf.Min (corners [2].x, corners [3].x)));
 			}
 		}
 
@@ -352,7 +277,8 @@ namespace NP.Convex.Shape{
 
 			get{
 
-				return Mathf.Max (_x, _x + _width);
+				Vector2[] corners = AllCorners;
+				return Mathf.Max (corners [0].x, Mathf.Max (corners [1].x, Mathf.Max (corners [2].x, corners [3].x)));
 			}
 		}
 
@@ -360,7 +286,8 @@ namespace NP.Convex.Shape{
 
 			get{
 
-				return Mathf.Min (_y, _y - _height);
+				Vector2[] corners = AllCorners;
+				return Mathf.Min (corners [0].y, Mathf.Min (corners [1].y, Mathf.Min (corners [2].y, corners [3].y)));
 			}
 		}
 
@@ -368,23 +295,8 @@ namespace NP.Convex.Shape{
 
 			get{
 
-				return Mathf.Max (_y, _y - _height);
-			}
-		}
-
-		public Vector2 minCorner{
-
-			get{
-
-				return new Vector2 (xMin, yMin);
-			}
-		}
-
-		public Vector2 maxCorner{
-
-			get{
-
-				return new Vector2 (xMax, yMax);
+				Vector2[] corners = AllCorners;
+				return Mathf.Max (corners [0].y, Mathf.Max (corners [1].y, Mathf.Max (corners [2].y, corners [3].y)));
 			}
 		}
 		#endregion
@@ -407,24 +319,40 @@ namespace NP.Convex.Shape{
 			_y = y;
 			_width = Mathf.Abs(width);
 			_height = Mathf.Abs(height);
-			CalculateCenter ();
+			_rotation = 0;
+			_center = new Vector2 (_x + _width / 2.0f, _y - _height / 2.0f);
 		}
 
 		public ConvexRect(Vector2 center, Vector2 size){
 
 			_shapeId = ConvexShapeID.Rectangle;
 
+			_center = center;
+			_rotation = 0;
 			_x = center.x - size.x / 2.0f;
 			_y = center.y + size.y / 2.0f;
 			_width = Mathf.Abs(size.x);
 			_height = Mathf.Abs(size.y);
+
 		}
 		#endregion
 
 		#region Private methods
-		void CalculateCenter(){
+		/**
+		 * Apply a rotation to a point and rotate around from anchor point
+		 * 
+		 * Param angle in degree positive value will rotate counter-clockwise
+		 **/
+		Vector2 ApplyRotationToPoint(Vector2 point, Vector2 anchor, float angle){
 
-			_center = new Vector2 (_x + _width / 2.0f, _y - _height / 2.0f);
+			float sinR = Mathf.Sin(angle * Mathf.Deg2Rad);
+			float cosR = Mathf.Cos(angle * Mathf.Deg2Rad);
+
+
+			Vector2 direction = point - anchor;
+
+			return new Vector2(cosR * direction.x - sinR * direction.y + anchor.x,
+				sinR * direction.x + cosR * direction.y + anchor.y);
 		}
 		#endregion
 
