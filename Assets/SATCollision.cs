@@ -163,6 +163,11 @@ namespace NP.Convex.Shape{
 		 **/
 		public float Width{
 
+			get{
+
+				return _width;
+			}
+
 			set{
 
 				_width = value;
@@ -177,6 +182,11 @@ namespace NP.Convex.Shape{
 		 * Set height for rectangle extend from center 
 		 **/
 		public float Height{
+
+			get{
+			
+				return _height;
+			}
 
 			set{
 
