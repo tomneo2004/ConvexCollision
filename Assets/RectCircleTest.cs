@@ -25,9 +25,9 @@ public class RectCircleTest : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-		rect1.center = rectCenter;
-		rect1.width = rectSize.x;
-		rect1.height = rectSize.y;
+		rect1.Center = rectCenter;
+		rect1.Width = rectSize.x;
+		rect1.Height = rectSize.y;
 		rect1.Rotation += 10.0f * Time.deltaTime;
 		circle.Center = circlePosition;
 		circle.Radius = cRadius;

@@ -24,13 +24,13 @@ public class RectCollisionTest : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-		rect1.center = center1;
-		rect1.width = rect1Size.x;
-		rect1.height = rect1Size.y;
+		rect1.Center = center1;
+		rect1.Width = rect1Size.x;
+		rect1.Height = rect1Size.y;
 		rect1.Rotation += 10.0f * Time.deltaTime;
-		rect2.center = center2;
-		rect2.width = rect2Size.x;
-		rect2.height = rect2Size.y;
+		rect2.Center = center2;
+		rect2.Width = rect2Size.x;
+		rect2.Height = rect2Size.y;
 		rect2.Rotation += 10.0f * Time.deltaTime;
 		CheckCollision ();
 	}
