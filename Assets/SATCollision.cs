@@ -407,23 +407,24 @@ namespace NP.Convex.Shape{
 			Vector2[] rect2AllCorners = otherRect.AllCorners;
 
 			//For each normals in this rectangle
-			for (int i = 0; i < rect1Normals.Length; i++) {
-
+			IEnumerator ie = rect1Normals.GetEnumerator ();
+			while (ie.MoveNext ()) {
+			
 				//Projecting all corners from rect1 to rect1's normal
-				float r1Dot1 = Vector2.Dot (rect1Normals [i], rect1AllCorners [0]);
-				float r1Dot2 = Vector2.Dot (rect1Normals [i], rect1AllCorners [1]);
-				float r1Dot3 = Vector2.Dot (rect1Normals [i], rect1AllCorners [2]);
-				float r1Dot4 = Vector2.Dot (rect1Normals [i], rect1AllCorners [3]);
+				float r1Dot1 = Vector2.Dot ((Vector2)ie.Current, rect1AllCorners [0]);
+				float r1Dot2 = Vector2.Dot ((Vector2)ie.Current, rect1AllCorners [1]);
+				float r1Dot3 = Vector2.Dot ((Vector2)ie.Current, rect1AllCorners [2]);
+				float r1Dot4 = Vector2.Dot ((Vector2)ie.Current, rect1AllCorners [3]);
 
 				//Find rect1 max and min projection
 				float r1PMin = Mathf.Min (r1Dot1, Mathf.Min (r1Dot2, Mathf.Min (r1Dot3, r1Dot4)));
 				float r1PMax = Mathf.Max (r1Dot1, Mathf.Max (r1Dot2, Mathf.Max (r1Dot3, r1Dot4)));
 
 				//Projecting all corners from rect2 to rect1's normal
-				float r2Dot1 = Vector2.Dot (rect1Normals [i], rect2AllCorners [0]);
-				float r2Dot2 = Vector2.Dot (rect1Normals [i], rect2AllCorners [1]);
-				float r2Dot3 = Vector2.Dot (rect1Normals [i], rect2AllCorners [2]);
-				float r2Dot4 = Vector2.Dot (rect1Normals [i], rect2AllCorners [3]);
+				float r2Dot1 = Vector2.Dot ((Vector2)ie.Current, rect2AllCorners [0]);
+				float r2Dot2 = Vector2.Dot ((Vector2)ie.Current, rect2AllCorners [1]);
+				float r2Dot3 = Vector2.Dot ((Vector2)ie.Current, rect2AllCorners [2]);
+				float r2Dot4 = Vector2.Dot ((Vector2)ie.Current, rect2AllCorners [3]);
 
 				//Find rect2 max and min projection
 				float r2PMin = Mathf.Min (r2Dot1, Mathf.Min (r2Dot2, Mathf.Min (r2Dot3, r2Dot4)));
@@ -475,13 +476,14 @@ namespace NP.Convex.Shape{
 				 **/
 				Vector2[] corners = AllCorners;
 
-				for (int i = 0; i < corners.Length; i++) {
-
+				IEnumerator ie = corners.GetEnumerator ();
+				while (ie.MoveNext ()) {
+				
 					//projection axis from corner to circle center
-					Vector2 p = otherCircle.Center - corners [i];
+					Vector2 p = otherCircle.Center - (Vector2)ie.Current;
 
 					//corner projection
-					float cornerP = Vector2.Dot (p.normalized, corners [i]);
+					float cornerP = Vector2.Dot (p.normalized, (Vector2)ie.Current);
 
 					//circle center projection
 					float circleP = Vector2.Dot (p.normalized, otherCircle.Center);
@@ -603,10 +605,10 @@ namespace NP.Convex.Shape{
 			//base on axis find min and max corner
 			float rMin = 0.0f;
 			float rMax = 0.0f;
-			for (int i = 0; i < corners.Length; i++) {
-
-				rMax = Mathf.Max (rMax, Vector2.Dot (p.normalized, corners [i]));
-				rMin = Mathf.Min (rMin, Vector2.Dot (p.normalized, corners [i]));
+			IEnumerator ie = corners.GetEnumerator ();
+			while(ie.MoveNext()){
+				rMax = Mathf.Max (rMax, Vector2.Dot (p.normalized, (Vector2)ie.Current));
+				rMin = Mathf.Min (rMin, Vector2.Dot (p.normalized, (Vector2)ie.Current));
 			}
 
 			//find circle center projection
@@ -637,20 +639,21 @@ namespace NP.Convex.Shape{
 				Vector2[] normals = otherRect.Normals;
 				float r1Dot1, r1Dot2, r1Dot3, r1Dot4, r1PMin, r1PMax;
 
-				for (int i = 0; i < normals.Length; i++) {
-
+				ie = normals.GetEnumerator ();
+				while (ie.MoveNext ()) {
+				
 					//4 corners projection
-					r1Dot1 = Vector2.Dot (normals [i], corners [0]);
-					r1Dot2 = Vector2.Dot (normals [i], corners [1]);
-					r1Dot3 = Vector2.Dot (normals [i], corners [2]);
-					r1Dot4 = Vector2.Dot (normals [i], corners [3]);
+					r1Dot1 = Vector2.Dot ((Vector2)ie.Current, corners [0]);
+					r1Dot2 = Vector2.Dot ((Vector2)ie.Current, corners [1]);
+					r1Dot3 = Vector2.Dot ((Vector2)ie.Current, corners [2]);
+					r1Dot4 = Vector2.Dot ((Vector2)ie.Current, corners [3]);
 
 					//corner min and max on this normal(projection axis)
 					r1PMin = Mathf.Min (r1Dot1, Mathf.Min (r1Dot2, Mathf.Min (r1Dot3, r1Dot4)));
 					r1PMax = Mathf.Max (r1Dot1, Mathf.Max (r1Dot2, Mathf.Max (r1Dot3, r1Dot4)));
 
 					//circle center projection on this normal(projection axis)
-					float circleP = Vector2.Dot (normals [i], _center);
+					float circleP = Vector2.Dot ((Vector2)ie.Current, _center);
 
 					//check if circle overlap rectangle
 					if ((circleP - _radius) > r1PMax || (circleP + _radius) < r1PMin) {
